@@ -37,6 +37,18 @@ const useVaah = vaah();
                 </template>
 
             </Column>
+             <Column field="roles"
+                     header="Roles"
+             >
+                 <template #body="prop">
+                     <Button class="p-button-sm p-button-rounded white-space-nowrap"
+                             data-testid="users-list_data_role"
+                             @click="store.toView(prop.data)"
+                     >
+<!--                         {{ prop.data.name }} / {{ store.assets.totalRole }}-->
+                     </Button>
+                 </template>
+             </Column>
 
 
                 <Column field="updated_at" header="Updated"

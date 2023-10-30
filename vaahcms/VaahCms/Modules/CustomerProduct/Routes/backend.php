@@ -30,6 +30,7 @@ Route::group(
 
 include('backend/routes-customers.php');
 include('backend/routes-products.php');
+include('backend/routes-users.php');
 
 /*
  * Include CRUD Routes

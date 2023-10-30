@@ -87,6 +87,11 @@ class Customer extends Model
     }
 
     //-------------------------------------------------
+    public function products()
+    {
+        return $this->hasMany(Product::class,'customer_id', 'id');
+    }
+    //-------------------------------------------------
 
     public function createdByUser()
     {
