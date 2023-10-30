@@ -28,6 +28,8 @@ Route::group(
         //------------------------------------------------
     });
 
+include('backend/routes-customers.php');
+include('backend/routes-products.php');
 
 /*
  * Include CRUD Routes
