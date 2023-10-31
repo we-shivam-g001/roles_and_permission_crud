@@ -157,12 +157,7 @@ const toggleItemMenu = (event) => {
 
                 <Column>
                     <template #body="prop">
-                        <!--                        <Button class="p-button-sm p-button-rounded p-button-outlined"-->
-                        <!--                                @click="openDetailsViewModal(), store.active_product_user = prop.data"-->
-                        <!--                                icon="pi pi-eye"-->
-                        <!--                                label="View"-->
-                        <!--                                data-testid="role-user_view_details"-->
-                        <!--                        />-->
+                       
                         <Button class="p-button-sm p-button-rounded p-button-outlined"
                                 v-tooltip.top="'View'"
                                 @click="store.showModal(prop.data)"
