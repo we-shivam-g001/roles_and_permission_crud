@@ -19,9 +19,9 @@ class PrCustomersProducts extends Migration
             $table->uuid('uuid')->nullable()->index();
 
             $table->bigInteger('customer_id')->unsigned()->nullable()->index();
-            $table->foreign('customer_id')->references('id')->on('pr_customers');
+            $table->foreign('customer_id')->references('id')->on('pr_customers')->onDelete('cascade');
             $table->bigInteger('product_id')->unsigned()->nullable()->index();
-            $table->foreign('product_id')->references('id')->on('pr_products');
+            $table->foreign('product_id')->references('id')->on('pr_products')->onDelete('cascade');
 
             $table->boolean('is_active')->nullable()->index();
 
