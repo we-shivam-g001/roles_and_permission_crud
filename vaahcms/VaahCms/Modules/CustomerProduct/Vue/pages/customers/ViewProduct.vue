@@ -169,7 +169,7 @@ const toggleItemMenu = (event) => {
                                 data-testid="users-role_details_view"
                                 icon="pi pi-eye"
                                 label="View"
-                        />
+                        />{{prop.data.created_by}}
                     </template>
                 </Column>
             </DataTable>
@@ -189,17 +189,18 @@ const toggleItemMenu = (event) => {
                 :breakpoints="{'960px': '75vw', '640px': '90vw'}" :style="{width: '50vw'}"
                 :modal="true"
         >
-<!--            <div v-for="(item,index) in store.modalData" :key="index">-->
-<!--                <span> {{ index }} </span> : {{ item }}-->
-<!--                {{}}-->
+            <div v-for="(item,index) in store.modalData" :key="index">
+                <span> {{ index }} </span> : {{ item }}
+                {{}}
 
-<!--                <Divider />-->
-<!--            </div>-->
-            <div>
-                <span>Created At:</span> {{ store.modalData.created_at }}
+
                 <Divider />
-                <span>Updated At:</span> {{ store.modalData.updated_at }}
             </div>
+<!--            <div>-->
+<!--                <span>Created At:</span> {{ store.modalData.created_at }}-->
+<!--                <Divider />-->
+<!--                <span>Updated At:</span> {{ store.modalData.updated_at }}-->
+<!--            </div>-->
         </Dialog>
     </div>
 

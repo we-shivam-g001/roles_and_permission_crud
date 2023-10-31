@@ -788,12 +788,12 @@ class Customer extends Model
 
         $data = array();
 
-        if ($pivot->created_by && Product::find($pivot->created_by)) {
-            $data['created_by'] = Product::find($pivot->created_by)->name;
+        if ($pivot->created_by ) {
+            $data['created_by'] = User::find($pivot->created_by)->name;
         }
 
-        if ($pivot->updated_by && Product::find($pivot->updated_by)) {
-            $data['updated_by'] = Product::find($pivot->updated_by)->name;
+        if ($pivot->updated_by ) {
+            $data['updated_by'] = User::find($pivot->updated_by)->name;
         }
 
         if ($pivot->created_at) {
