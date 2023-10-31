@@ -93,13 +93,28 @@ class Product extends Model
     public function customers(): BelongsToMany
     {
         return $this->belongsToMany(
-            Customer::class, 'vh_customers_products',
+            Customer::class, 'pr_customers_products',
             'product_id', 'customer_id')
             ->withPivot('is_active',
                 'created_by',
                 'created_at',
                 'updated_by',
                 'updated_at');
+    }
+    public static function syncProductsWithCustomers()
+    {
+        $all_products = Customer::select('id')->get()->pluck('id')->toArray();
+        $all_roles = self::select('id')->get();
+
+        if (!$all_roles) {
+            return false;
+        }
+
+        foreach ($all_roles as $role) {
+            $role->customers()->syncWithoutDetaching($all_products);
+        }
+        return true;
+
     }
     //-------------------------------------------------
     public function activeProducts(): BelongsToMany
@@ -195,7 +210,7 @@ class Product extends Model
         $item->fill($inputs);
         $item->slug = Str::slug($inputs['slug']);
         $item->save();
-
+        self::syncProductsWithCustomers();
         $response = self::getItem($item->id);
         $response['messages'][] = 'Saved successfully.';
         return $response;
