@@ -54,6 +54,11 @@ class Customer extends Model
         return $date->format($date_time_format);
     }
 
+    public function scopeIsActive($query)
+    {
+        $query->where('products.is_active', 1);
+    }
+
     //-------------------------------------------------
     public static function getUnFillableColumns()
     {
@@ -90,10 +95,7 @@ class Customer extends Model
     }
 
     //-------------------------------------------------
-//    public function products()
-//    {
-//        return $this->hasMany(Product::class,'customer_id', 'id');
-//    }
+
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'pr_customers_products', 'customer_id', 'product_id')
@@ -105,7 +107,7 @@ class Customer extends Model
                 'updated_at'
             ]);
     }
-    public static function syncProductsWithUsers()
+    public static function syncProductsWithCustomers()
     {
         $all_users = Product::select('id')->get()->pluck('id')->toArray();
         $all_roles = self::select('id')->get();
@@ -119,6 +121,66 @@ class Customer extends Model
         }
         return true;
 
+    }
+    public function activeProducts(): BelongsToMany
+    {
+        return $this->products()->wherePivot('is_active', 1);
+    }
+    public static function getItemUser($request, $id): array
+    {
+        return self::getProductCustomer($request, $id);
+    }
+    public static function getProductCustomer($request, $id)
+    {
+        $item = self::withTrashed()->where('id', $id)->first();
+        $response['data']['item'] = $item;
+
+        if ($request->has("q")) {
+            $list = $item->products()->where(function ($q) use ($request) {
+                $q->where('first_name', 'LIKE', '%' . $request->q . '%')
+                    ->orWhere('middle_name', 'LIKE', '%' . $request->q . '%')
+                    ->orWhere('last_name', 'LIKE', '%' . $request->q . '%')
+                    ->orWhere(DB::raw('concat(first_name," ",middle_name," ",last_name)'), 'like', '%' . $request->q . '%')
+                    ->orWhere(DB::raw('concat(first_name," ",last_name)'), 'like', '%' . $request->q . '%')
+                    ->orWhere('display_name', 'like', '%' . $request->q . '%')
+                    ->orWhere('email', 'LIKE', '%' . $request->q . '%');
+            });
+        } else {
+            $list = $item->products();
+        }
+
+        $rows = config('vaahcms.per_page');
+
+        if ($request->has('rows')) {
+            $rows = $request->rows;
+        }
+
+        $list = $list->paginate($rows);
+
+        foreach ($list as $user) {
+            $data = self::getPivotData($user->pivot);
+
+            $user['json'] = $data;
+            $user['json_length'] = count($data);
+        }
+
+        $response['data']['list'] = $list;
+        $response['success'] = true;
+
+        return $response;
+    }
+
+
+
+    public static function countProducts($id): int
+    {
+        $products = self::withTrashed()->where('id', $id)->first();
+
+        if (!$products) {
+            return 0;
+        }
+
+        return $products->products()->wherePivot('is_active', 1)->count();
     }
 
     //-------------------------------------------------
@@ -213,7 +275,7 @@ class Customer extends Model
         $item->slug = Str::slug($inputs['slug']);
         $item->save();
 
-        self::syncProductsWithUsers();
+        self::syncProductsWithCustomers();
 
         $response = self::getItem($item->id);
         $response['messages'][] = 'Saved successfully.';
@@ -301,9 +363,13 @@ class Customer extends Model
         });
 
     }
+
     //-------------------------------------------------
     public static function getList($request)
     {
+        if (isset($request['recount']) && $request['recount'] == true) {
+            self::syncProductsWithCustomers();
+        }
         $list = self::getSorted($request->filter);
         $list->isActiveFilter($request->filter);
         $list->trashedFilter($request->filter);
@@ -316,9 +382,12 @@ class Customer extends Model
             $rows = $request->rows;
         }
 
-        $list = $list->paginate($rows);
+//        $list = $list->paginate($rows);
 
-        $response['total_products']=Product::all()->count();
+//        $response['total_products']=Product::all()->count();
+        $list->withCount(['activeProducts']);
+        $list = $list->paginate($rows);
+        $response['totalProduct'] = Product::all()->count();
 
 
 
@@ -715,13 +784,13 @@ class Customer extends Model
 
         if ($request->has("q")) {
             $list = $item->products()->where(function ($q) use ($request) {
-                $q->where('first_name', 'LIKE', '%' . $request->q . '%')
-                    ->orWhere('middle_name', 'LIKE', '%' . $request->q . '%')
-                    ->orWhere('last_name', 'LIKE', '%' . $request->q . '%')
-                    ->orWhere(DB::raw('concat(first_name," ",middle_name," ",last_name)'), 'like', '%' . $request->q . '%')
-                    ->orWhere(DB::raw('concat(first_name," ",last_name)'), 'like', '%' . $request->q . '%')
-                    ->orWhere('display_name', 'like', '%' . $request->q . '%')
-                    ->orWhere('email', 'LIKE', '%' . $request->q . '%');
+                $q->where('name', 'LIKE', '%' . $request->q . '%');
+//                    ->orWhere('middle_name', 'LIKE', '%' . $request->q . '%')
+//                    ->orWhere('last_name', 'LIKE', '%' . $request->q . '%')
+//                    ->orWhere(DB::raw('concat(first_name," ",middle_name," ",last_name)'), 'like', '%' . $request->q . '%')
+//                    ->orWhere(DB::raw('concat(first_name," ",last_name)'), 'like', '%' . $request->q . '%')
+//                    ->orWhere('display_name', 'like', '%' . $request->q . '%')
+//                    ->orWhere('email', 'LIKE', '%' . $request->q . '%');
             });
         } else {
             $list = $item->products();
@@ -747,15 +816,7 @@ class Customer extends Model
 
         return $response;
     }
-//    public static function getProduct(): array
-//    {
-//        $products = Product::all();
-//
-//        return [
-//            'success' => true,
-//            'data' => $products,
-//        ];
-//    }
+
 
 
 
@@ -831,22 +892,22 @@ class Customer extends Model
 
         if (isset($inputs['id'])) {
             $item = self::find($inputs['id']);
-            $userIds = $inputs['customer_id'];
+            $product_ids = $inputs['product_id'];
 
-            foreach ($userIds as $userId) {
-                $pivot = $item->users->find($userId)->pivot;
-                $updateData = [
+            foreach ($product_ids as $product_id) {
+                $pivot = $item->products->find($product_id)->pivot;
+                $update_data = [
                     'is_active' => $data['is_active'],
                     'updated_by' => Auth::user()->id,
                     'updated_at' => \Illuminate\Support\Carbon::now(),
                 ];
 
                 if ($pivot->is_active === null || !$pivot->created_by) {
-                    $updateData['created_by'] = Auth::user()->id;
-                    $updateData['created_at'] = Carbon::now();
+                    $update_data['created_by'] = Auth::user()->id;
+                    $update_data['created_at'] = Carbon::now();
                 }
 
-                $item->products()->updateExistingPivot($userId, $updateData);
+                $item->products()->updateExistingPivot($product_id, $update_data);
             }
         }
 

@@ -273,13 +273,13 @@ class CustomersController extends Controller
             switch ($action)
             {
                 //------------------------------------
-                case 'toggle-user-active-status':
+                case 'toggle-product-active-status':
 
                     $response = Customer::changeUserStatus($request);
 
                     break;
                 //------------------------------------
-                case 'toggle-all-user-active-status':
+                case 'toggle-all-product-active-status':
 
                     $response = Customer::bulkChangeUserStatus($request);
 

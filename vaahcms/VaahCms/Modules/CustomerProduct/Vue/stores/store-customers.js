@@ -75,7 +75,7 @@ export const useCustomerStore = defineStore({
        customer_product_menu:null,
         total_products: null,
 
-        product_users: null,
+        product_customer: null,
         search_item: null,
         active_product_user: null,
         product_customer_query: vaah().clone(empty_states.product_customer_query),
@@ -166,7 +166,12 @@ export const useCustomerStore = defineStore({
                 {
                     this.delayedSearch();
                 },{deep: true}
-            )
+            );
+            watch(this.product_customer_query, (newVal, oldVal) => {
+                this.delayedProductCustomerSearch();
+            }, {
+                deep: true
+            });
         },
         //---------------------------------------------------------------------
          watchItem(name)
@@ -224,6 +229,7 @@ export const useCustomerStore = defineStore({
             {
                 this.list = data;
             }
+            this.total_products = res.data.totalProduct;
         },
         //---------------------------------------------------------------------
 
@@ -957,26 +963,26 @@ export const useCustomerStore = defineStore({
             this.hideProgress();
 
             if (data) {
-                this.product_users = data;
+                this.product_customer = data;
 
             }
         },
         // // ------------------------
         async userPaginate(event) {
             this.product_customer_query.page = event.page+1;
-            await this.getItemUsers();
+            await this.getItemProducts();
         },
         // //---------------------------------------------------------------------
-        async delayedProductUsersSearch() {
+        async delayedProductCustomerSearch() {
             let self = this;
             if(self.item && self.item.id) {
                 clearTimeout(this.search.delay_timer);
                 this.search.delay_timer = setTimeout(async function () {
-                    await self.getItemUsers();
+                    await self.getItemProducts();
                 }, this.search.delay_time);
             }
         },
-        changeUserProduct: function (item) {
+        changeCustomerProduct: function (item) {
 
             let params = {
                 id : this.item.id,
@@ -996,14 +1002,14 @@ export const useCustomerStore = defineStore({
                 data.is_active = 1;
             }
 
-            this.actions(false, 'toggle-user-active-status', params, data)
+            this.actions(false, 'toggle-product-active-status', params, data)
 
         },
         bulkActions (input, action) {
-            let user_id = this.product_users.list.data.map((customer) => customer.id);
+            let product_id = this.product_customer.list.data.map((customer) => customer.id);
             let params = {
                 id: this.item.id,
-                user_id: user_id
+                product_id: product_id
             };
 
             let data = {
@@ -1037,10 +1043,10 @@ export const useCustomerStore = defineStore({
         },
         async afterActions (data,res) {
             await this.hideProgress();
-            await this.getItemUsers();
+            await this.getItemProducts();
             await this.getList();
         },
-        resetProductUserFilters() {
+        resetProductCustomerFilters() {
             this.product_customer_query.q = null;
         },
         async getProductUserMenuItems() {
@@ -1048,13 +1054,13 @@ export const useCustomerStore = defineStore({
                 {
                     label: 'Attach To All Products',
                     command: () => {
-                        this.bulkActions(1, 'toggle-all-user-active-status');
+                        this.bulkActions(1, 'toggle-all-product-active-status');
                     }
                 },
                 {
                     label: 'Detach To All Products',
                     command: () => {
-                        this.bulkActions(0, 'toggle-all-user-active-status');
+                        this.bulkActions(0, 'toggle-all-product-active-status');
                     }
                 }
             ]
@@ -1068,10 +1074,10 @@ export const useCustomerStore = defineStore({
         {
             this.show_progress_bar = false;
         },
-        // showModal(item){
-        //     this.displayModal = true;
-        //     this.modalData = item.json;
-        // },
+        showModal(item){
+            this.displayModal = true;
+            this.modalData = item.json;
+        },
     }
 });
 

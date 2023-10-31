@@ -49,13 +49,14 @@ const useVaah = vaah();
 <!--                     </Button>-->
 <!--                 </template>-->
 <!--             </Column>-->
-             <Column header="Products"
+             <Column header="Has Products"
              >
                  <template #body="prop">
                      <Button class="p-button-sm p-button-rounded white-space-nowrap"
                              data-testid="product_list_data_user"
                              @click="store.toProducts(prop.data)">
-                         {{ 0 }} / {{ store.assets.totalProduct}}
+<!--                         {{ 0 }} / {{ store.assets.totalProduct}}-->
+                         {{ prop.data.active_products_count }} / {{ store.total_products}}
                      </Button>
                  </template>
              </Column>
