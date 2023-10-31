@@ -24,7 +24,7 @@ let empty_states = {
     product_customer_query: {
         q: null,
         page: null,
-        rows: 2,
+        rows: 10,
     },
     action: {
         type: null,
