@@ -3,6 +3,7 @@
 use Carbon\Carbon;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -45,6 +46,8 @@ class Product extends Model
     ];
 
     //-------------------------------------------------
+
+
     protected function serializeDate(DateTimeInterface $date)
     {
         $date_time_format = config('settings.global.datetime_format');
@@ -87,12 +90,22 @@ class Product extends Model
     }
 
     //-------------------------------------------------
-    public function customers()
+    public function customers(): BelongsToMany
     {
-        return $this->belongsTo(Customer::class, 'customer_id', 'id');
+        return $this->belongsToMany(
+            Customer::class, 'vh_customers_products',
+            'product_id', 'customer_id')
+            ->withPivot('is_active',
+                'created_by',
+                'created_at',
+                'updated_by',
+                'updated_at');
     }
     //-------------------------------------------------
-
+    public function activeProducts(): BelongsToMany
+    {
+        return $this->customers()->wherePivot('is_active', 1);
+    }
     public function createdByUser()
     {
         return $this->belongsTo(User::class,

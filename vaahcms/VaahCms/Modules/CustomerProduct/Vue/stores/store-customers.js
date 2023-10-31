@@ -19,6 +19,12 @@ let empty_states = {
             trashed: null,
             sort: null,
         },
+        recount: null
+    },
+    product_customer_query: {
+        q: null,
+        page: null,
+        rows: 2,
     },
     action: {
         type: null,
@@ -65,7 +71,17 @@ export const useCustomerStore = defineStore({
         list_create_menu: [],
         item_menu_list: [],
         item_menu_state: null,
-        form_menu_list: []
+        form_menu_list: [],
+       customer_product_menu:null,
+        total_products: null,
+
+        product_users: null,
+        search_item: null,
+        active_product_user: null,
+        product_customer_query: vaah().clone(empty_states.product_customer_query),
+        is_btn_loading: false,
+        modalData:null,
+        displayModal:false
     }),
     getters: {
 
@@ -613,6 +629,11 @@ export const useCustomerStore = defineStore({
             this.item = vaah().clone(item);
             this.$router.push({name: 'customers.view', params:{id:item.id}})
         },
+        toProducts(item) {
+            this.item = item;
+            this.getItemProducts();
+            this.$router.push({name: 'customers.products', params: {id: item.id}});
+        },
         //---------------------------------------------------------------------
         toEdit(item)
         {
@@ -916,70 +937,141 @@ export const useCustomerStore = defineStore({
 
         },
         //---------------------------------------------------------------------
-        async toRole(item) {
-            this.item = item;
-            await this.getUserRoles();
-            this.$router.push({name: 'users.role', params: { id: item.id }})
-        },
-        async getUserRoles () {
+        async getItemProducts() {
+
             this.showProgress();
 
-            let url = this.ajax_url+'/item/' + this.item.id + '/roles';
-
             let params = {
-                query: this.user_roles_query,
+                query: this.product_customer_query,
                 method: 'get',
             };
 
             vaah().ajax(
-                url,
-                await this.afterGetUserRoles,
+                this.ajax_url + '/item/' + this.item.id + '/products',
+                this.afterGetItemProducts,
                 params
             );
         },
-        //---------------------------------------------------------------------
-        async afterGetUserRoles(data, res) {
+        // //---------------------------------------------------------------------
+        afterGetItemProducts(data, res) {
             this.hideProgress();
 
             if (data) {
-                this.user_roles = data;
-            }
-        },
-        //---------------------------------------------------------------------
-        async delayedUserRolesSearch() {
-            let self = this;
+                this.product_users = data;
 
-            if (self.item && self.item.id) {
-                clearTimeout(this.search.delay_timer);
-                this.search.delay_timer = setTimeout(async function() {
-                    await self.getUserRoles();
-                },this.search.delay_time)
             }
         },
-        //---------------------------------------------------------------------
-        async userRolesPaginate(event) {
-            this.user_roles_query.page = event.page + 1;
-            this.user_roles_query.rows = event.rows;
-            await this.getUserRoles();
+        // // ------------------------
+        async userPaginate(event) {
+            this.product_customer_query.page = event.page+1;
+            await this.getItemUsers();
         },
-        //---------------------------------------------------------------------
-        async changeUserRole(item,id){
+        // //---------------------------------------------------------------------
+        async delayedProductUsersSearch() {
+            let self = this;
+            if(self.item && self.item.id) {
+                clearTimeout(this.search.delay_timer);
+                this.search.delay_timer = setTimeout(async function () {
+                    await self.getItemUsers();
+                }, this.search.delay_time);
+            }
+        },
+        changeUserProduct: function (item) {
+
             let params = {
-                id : id,
-                role_id : item.id,
+                id : this.item.id,
+                product_id : item.id,
+
             };
+
+            console.log(params);
 
             let data = {};
 
-            if (item.pivot.is_active) {
+            if(item.pivot.is_active)
+            {
                 data.is_active = 0;
-            } else {
+            } else
+            {
                 data.is_active = 1;
             }
 
-            await this.actions(false, 'toggle-role-active-status', params, data)
+            this.actions(false, 'toggle-user-active-status', params, data)
 
         },
+        bulkActions (input, action) {
+            let user_id = this.product_users.list.data.map((customer) => customer.id);
+            let params = {
+                id: this.item.id,
+                user_id: user_id
+            };
+
+            let data = {
+                is_active: input
+            };
+
+            this.actions(false, action, params, data)
+
+        },
+        actions (e, action, inputs , data) {
+
+            this.showProgress();
+
+            if (e) {
+                e.preventDefault();
+            }
+
+            let params = {
+                params: {
+                    inputs: inputs,
+                    data: data,
+                },
+                method: 'post',
+            };
+
+            vaah().ajax(
+                this.ajax_url+'/actions/' + action,
+                this.afterActions,
+                params
+            );
+        },
+        async afterActions (data,res) {
+            await this.hideProgress();
+            await this.getItemUsers();
+            await this.getList();
+        },
+        resetProductUserFilters() {
+            this.product_customer_query.q = null;
+        },
+        async getProductUserMenuItems() {
+            this.customer_product_menu = [
+                {
+                    label: 'Attach To All Products',
+                    command: () => {
+                        this.bulkActions(1, 'toggle-all-user-active-status');
+                    }
+                },
+                {
+                    label: 'Detach To All Products',
+                    command: () => {
+                        this.bulkActions(0, 'toggle-all-user-active-status');
+                    }
+                }
+            ]
+        },
+        showProgress()
+        {
+            this.show_progress_bar = true;
+        },
+        // //---------------------------------------------------------------------
+        hideProgress()
+        {
+            this.show_progress_bar = false;
+        },
+        // showModal(item){
+        //     this.displayModal = true;
+        //     this.modalData = item.json;
+        // },
     }
 });
 

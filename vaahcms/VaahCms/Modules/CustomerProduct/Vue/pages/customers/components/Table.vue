@@ -37,15 +37,25 @@ const useVaah = vaah();
                 </template>
 
             </Column>
-             <Column field="roles"
-                     header="Roles"
+<!--             <Column field="roles"-->
+<!--                     header="Roles"-->
+<!--             >-->
+<!--                 <template #body="prop">-->
+<!--                     <Button class="p-button-sm p-button-rounded white-space-nowrap"-->
+<!--                             data-testid="users-list_data_role"-->
+<!--                             @click="store.toView(prop.data)"-->
+<!--                     >-->
+<!--&lt;!&ndash;                         {{ prop.data.name }} / {{ store.assets.totalRole }}&ndash;&gt;-->
+<!--                     </Button>-->
+<!--                 </template>-->
+<!--             </Column>-->
+             <Column header="Products"
              >
                  <template #body="prop">
                      <Button class="p-button-sm p-button-rounded white-space-nowrap"
-                             data-testid="users-list_data_role"
-                             @click="store.toView(prop.data)"
-                     >
-<!--                         {{ prop.data.name }} / {{ store.assets.totalRole }}-->
+                             data-testid="product_list_data_user"
+                             @click="store.toProducts(prop.data)">
+                         {{ 0 }} / {{ store.assets.totalProduct}}
                      </Button>
                  </template>
              </Column>

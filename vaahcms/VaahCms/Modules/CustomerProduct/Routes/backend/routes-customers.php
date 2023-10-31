@@ -3,9 +3,9 @@
 Route::group(
     [
         'prefix' => 'backend/customerproduct/customers',
-        
+
         'middleware' => ['web', 'has.backend.access'],
-        
+
         'namespace' => 'Backend',
 ],
 function () {
@@ -71,5 +71,11 @@ function () {
         ->name('vh.backend.customerproduct.customers.item.action');
 
     //---------------------------------------------------------
+//    Route::get('/item/{id}/products', 'CustomersController@getItemProduct')
+//        ->name('backend.vaah.customers.item.product');
+    Route::get('/item/{id}/products', 'CustomersController@getItemProduct')
+        ->name('backend.vaah.customers.item.products');
 
+    Route::post('/actions/{action_name}', 'CustomersController@postActions')
+        ->name('backend.vaah.products.actions');
 });
