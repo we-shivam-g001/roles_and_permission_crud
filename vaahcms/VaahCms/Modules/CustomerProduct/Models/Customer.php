@@ -19,7 +19,7 @@ class Customer extends Model
 
     use SoftDeletes;
     use CrudWithUuidObservantTrait;
-
+    public array $matching_products = [];
     //-------------------------------------------------
     protected $table = 'pr_customers';
     //-------------------------------------------------
@@ -99,13 +99,13 @@ class Customer extends Model
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'pr_customers_products', 'customer_id', 'product_id')
-            ->withPivot([
+            ->withPivot(
                 'is_active',
                 'created_by',
                 'created_at',
                 'updated_by',
                 'updated_at'
-            ]);
+            );
     }
     public static function syncProductsWithCustomers()
     {
@@ -126,49 +126,7 @@ class Customer extends Model
     {
         return $this->products()->wherePivot('is_active', 1);
     }
-    public static function getItemUser($request, $id): array
-    {
-        return self::getProductCustomer($request, $id);
-    }
-    public static function getProductCustomer($request, $id)
-    {
-        $item = self::withTrashed()->where('id', $id)->first();
-        $response['data']['item'] = $item;
 
-        if ($request->has("q")) {
-            $list = $item->products()->where(function ($q) use ($request) {
-                $q->where('first_name', 'LIKE', '%' . $request->q . '%')
-                    ->orWhere('middle_name', 'LIKE', '%' . $request->q . '%')
-                    ->orWhere('last_name', 'LIKE', '%' . $request->q . '%')
-                    ->orWhere(DB::raw('concat(first_name," ",middle_name," ",last_name)'), 'like', '%' . $request->q . '%')
-                    ->orWhere(DB::raw('concat(first_name," ",last_name)'), 'like', '%' . $request->q . '%')
-                    ->orWhere('display_name', 'like', '%' . $request->q . '%')
-                    ->orWhere('email', 'LIKE', '%' . $request->q . '%');
-            });
-        } else {
-            $list = $item->products();
-        }
-
-        $rows = config('vaahcms.per_page');
-
-        if ($request->has('rows')) {
-            $rows = $request->rows;
-        }
-
-        $list = $list->paginate($rows);
-
-        foreach ($list as $user) {
-            $data = self::getPivotData($user->pivot);
-
-            $user['json'] = $data;
-            $user['json_length'] = count($data);
-        }
-
-        $response['data']['list'] = $list;
-        $response['success'] = true;
-
-        return $response;
-    }
 
 
 
@@ -774,27 +732,27 @@ class Customer extends Model
         return $response;
     }
 
-    //-------------------------------------------------
-    //-------------------------------------------------
-    //-------------------------------------------------
+
     public static function getProduct($request, $id): array
     {
         $item = self::withTrashed()->where('id', $id)->first();
         $response['data']['item'] = $item;
 
         if ($request->has("q")) {
-            $list = $item->products()->where(function ($q) use ($request) {
-                $q->where('name', 'LIKE', '%' . $request->q . '%');
-//                    ->orWhere('middle_name', 'LIKE', '%' . $request->q . '%')
-//                    ->orWhere('last_name', 'LIKE', '%' . $request->q . '%')
-//                    ->orWhere(DB::raw('concat(first_name," ",middle_name," ",last_name)'), 'like', '%' . $request->q . '%')
-//                    ->orWhere(DB::raw('concat(first_name," ",last_name)'), 'like', '%' . $request->q . '%')
-//                    ->orWhere('display_name', 'like', '%' . $request->q . '%')
-//                    ->orWhere('email', 'LIKE', '%' . $request->q . '%');
-            });
+            $matching_products = $item->products()
+                ->where(function ($q) use ($request) {
+                    $q->where('name', 'LIKE', '%' . $request->q . '%');
+
+                })
+                ->pluck('pr_products.id')
+                ->toArray();
+
         } else {
-            $list = $item->products();
+            $matching_products = $item->products()
+                ->pluck('pr_products.id')
+                ->toArray();
         }
+
 
         $rows = config('vaahcms.per_page');
 
@@ -802,21 +760,26 @@ class Customer extends Model
             $rows = $request->rows;
         }
 
-        $list = $list->paginate($rows);
+        $list = $item->products()
+            ->whereIn('pr_products.id', $matching_products)
+            ->orderBy('pivot_is_active', 'desc')
+            ->paginate($rows);
 
-        foreach ($list as $product) {
-            $data = self::getPivotData($product->pivot);
 
-            $product['json'] = $data;
-            $product['json_length'] = count($data);
+        foreach ($list as $user) {
+            $data = self::getPivotData($user->pivot);
+
+            $user['json'] = $data;
+            $user['json_length'] = count($data);
         }
 
+
         $response['data']['list'] = $list;
+        $response['data']['matching_product_ids'] = $matching_products;
         $response['success'] = true;
-
         return $response;
-    }
 
+    }
 
 
 
@@ -860,9 +823,6 @@ class Customer extends Model
             if ($pivot->is_active === null || !$pivot->created_by) {
                 $data['created_at'] = Carbon::now();
             }
-
-
-
             $item->products()->updateExistingPivot(
                 $inputs['inputs']['product_id'],
                 $data
@@ -887,6 +847,9 @@ class Customer extends Model
     public static function bulkChangeUserStatus($request): array
     {
         $inputs = $request->get('inputs');
+
+//        dd($inputs);
+
         $data = $request->get('data');
         $response = ['success' => true, 'data' => []];
 
@@ -913,5 +876,7 @@ class Customer extends Model
 
         return $response;
     }
+
+
 
 }

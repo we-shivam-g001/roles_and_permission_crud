@@ -81,7 +81,8 @@ export const useCustomerStore = defineStore({
         product_customer_query: vaah().clone(empty_states.product_customer_query),
         is_btn_loading: false,
         modalData:null,
-        displayModal:false
+        displayModal:false,
+        selected_product:[]
     }),
     getters: {
 
@@ -965,6 +966,8 @@ export const useCustomerStore = defineStore({
             if (data) {
                 this.product_customer = data;
 
+                this.selected_product=data.matching_product_ids;
+
             }
         },
         // // ------------------------
@@ -1006,11 +1009,15 @@ export const useCustomerStore = defineStore({
 
         },
         bulkActions (input, action) {
-            let product_id = this.product_customer.list.data.map((customer) => customer.id);
+
+            let product_id = this.selected_product;
+
+            console.log(product_id);
             let params = {
                 id: this.item.id,
                 product_id: product_id
             };
+            console.log(params);
 
             let data = {
                 is_active: input
@@ -1052,13 +1059,13 @@ export const useCustomerStore = defineStore({
         async getProductUserMenuItems() {
             this.customer_product_menu = [
                 {
-                    label: 'Attach To All Products',
+                    label: 'Active All Product',
                     command: () => {
                         this.bulkActions(1, 'toggle-all-product-active-status');
                     }
                 },
                 {
-                    label: 'Detach To All Products',
+                    label: 'Deactivate All Products',
                     command: () => {
                         this.bulkActions(0, 'toggle-all-product-active-status');
                     }

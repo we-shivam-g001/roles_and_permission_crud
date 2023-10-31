@@ -116,8 +116,6 @@ const toggleItemMenu = (event) => {
                     </div>
                 </div>
             </div>
-
-
             <DataTable v-if="store && store.product_customer"
                        :value="store.product_customer.list.data"
                        dataKey="id"
@@ -129,9 +127,16 @@ const toggleItemMenu = (event) => {
 
                 <Column field="name"
                         header="Name"
+                        class="flex align-items-center"
                 >
                     <template #body="prop">
                         {{ prop.data.name }}
+                        <Button class="p-button-tiny p-button-text"
+                                data-testid="users-table-to-edit"
+                                v-tooltip.top="'Copy Slug'"
+                                @click="useVaah.copy(prop.data.slug)"
+                                icon="pi pi-copy"
+                        />
                     </template>
                 </Column>
 
@@ -157,7 +162,7 @@ const toggleItemMenu = (event) => {
 
                 <Column>
                     <template #body="prop">
-                       
+
                         <Button class="p-button-sm p-button-rounded p-button-outlined"
                                 v-tooltip.top="'View'"
                                 @click="store.showModal(prop.data)"
