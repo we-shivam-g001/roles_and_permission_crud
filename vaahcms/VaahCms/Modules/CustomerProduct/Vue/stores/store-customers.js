@@ -965,7 +965,6 @@ export const useCustomerStore = defineStore({
 
             if (data) {
                 this.product_customer = data;
-
                 this.selected_product=data.matching_product_ids;
 
             }
