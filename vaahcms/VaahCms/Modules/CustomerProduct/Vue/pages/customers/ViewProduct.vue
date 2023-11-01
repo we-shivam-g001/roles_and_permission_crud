@@ -160,7 +160,7 @@ const toggleItemMenu = (event) => {
                     </template>
                 </Column>
 
-                <Column>
+                <Column header="View">
                     <template #body="prop">
 
                         <Button class="p-button-sm p-button-rounded p-button-outlined"
