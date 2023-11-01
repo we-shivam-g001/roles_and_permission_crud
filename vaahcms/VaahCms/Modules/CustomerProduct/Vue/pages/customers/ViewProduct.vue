@@ -169,7 +169,7 @@ const toggleItemMenu = (event) => {
                                 data-testid="users-role_details_view"
                                 icon="pi pi-eye"
                                 label="View"
-                        />{{prop.data.created_by}}
+                        />
                     </template>
                 </Column>
             </DataTable>
