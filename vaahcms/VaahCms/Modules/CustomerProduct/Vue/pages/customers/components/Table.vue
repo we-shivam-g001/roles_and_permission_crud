@@ -37,6 +37,8 @@ const useVaah = vaah();
                 </template>
 
             </Column>
+             <Column field="email" header="Email"
+                     :sortable="true"></Column>
 
 
 
