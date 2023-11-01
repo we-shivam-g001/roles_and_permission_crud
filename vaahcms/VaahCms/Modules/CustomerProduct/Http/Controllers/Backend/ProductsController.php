@@ -27,6 +27,8 @@ class ProductsController extends Controller
             $data['permission'] = [];
             $data['rows'] = config('vaahcms.per_page');
 
+            $data['unknown']= trans('vaahcms-general');
+
             $data['fillable']['columns'] = Product::getFillableColumns();
             $data['fillable']['except'] = Product::getUnFillableColumns();
             $data['empty_item'] = Product::getEmptyItem();

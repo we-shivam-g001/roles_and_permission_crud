@@ -658,6 +658,7 @@ class Customer extends Model
         $rules = array(
             'name' => 'required|max:150',
             'slug' => 'required|max:150',
+            'email' => 'required|email',
         );
 
         $validator = \Validator::make($inputs, $rules);
