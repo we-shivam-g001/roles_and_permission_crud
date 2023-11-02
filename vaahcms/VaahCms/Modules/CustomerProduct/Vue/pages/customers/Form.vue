@@ -144,6 +144,12 @@ const toggleFormMenu = (event) => {
                                data-testid="customers-slug"
                                v-model="store.item.slug"/>
                 </VhField>
+                <VhField label="Email">
+                    <InputText class="w-full"
+                               name="customers-email"
+                               data-testid="customers-email"
+                               v-model="store.item.email"/>
+                </VhField>
 
                 <VhField label="Is Active">
                     <InputSwitch v-bind:false-value="0"
