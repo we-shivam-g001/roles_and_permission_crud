@@ -1,4 +1,4 @@
-<?php
+<?php 
 return [
 
     /*
@@ -23,6 +23,6 @@ return [
     'saved_successfully' => 'Saved successfully.',
     'action_successful' => 'Action was successful',
     'no_module_installed' => 'No module installed/downloaded',
-    'common_message'=>'This is common message',
+    'common_heading' => 'Total Product .',
 
 ];
