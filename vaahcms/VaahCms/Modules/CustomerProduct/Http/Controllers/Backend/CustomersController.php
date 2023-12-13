@@ -33,6 +33,7 @@ class CustomersController extends Controller
             $data['fillable']['except'] = Customer::getUnFillableColumns();
             $data['empty_item'] = Customer::getEmptyItem();
             $data['totalProduct']=Product::all()->count();
+            $data['localization']=trans('vaahcms-general');
 
             $data['actions'] = [];
 
