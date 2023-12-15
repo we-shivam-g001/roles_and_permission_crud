@@ -620,8 +620,8 @@ class Product extends Model
     {
 
         $rules = array(
-            'name' => 'required|max:20',
-            'slug' => 'required|max:20',
+            'name' => 'required|max:150',
+            'slug' => 'required|max:150',
         );
 
         $validator = \Validator::make($inputs, $rules);
